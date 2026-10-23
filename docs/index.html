@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token Usage Check</title>
+<meta name="description" content="Are Canton Coin and Chainlink actually used by the systems making tokenization claims? Daily, from public data.">
+<style>
+:root {
+  --bg: #F7F9FB; --card: #FFFFFF; --ink: #14202E; --muted: #5F6B7A; --line: #E2E7ED;
+  --teal: #1F8A8A; --teal-pale: #E3F2F2; --green: #2E7D32; --green-pale: #E6F4E7;
+  --red: #B3261E; --red-pale: #FCE8E6; --amber: #B26A00; --amber-pale: #FFF3DC; --gray: #80868B; --gray-pale: #F1F3F4;
+  --navy: #0B1F3A;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E141B; --card: #16202B; --ink: #E6EDF3; --muted: #9AA7B4; --line: #253241;
+    --teal: #4FB8B8; --teal-pale: #143334; --green: #6CC070; --green-pale: #18301A; --red: #F08A80; --red-pale: #3A1A18;
+    --amber: #F0B45A; --amber-pale: #3A2A10; --gray: #9AA0A6; --gray-pale: #222B35; --navy: #CFE3FF;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E141B; --card: #16202B; --ink: #E6EDF3; --muted: #9AA7B4; --line: #253241;
+  --teal: #4FB8B8; --teal-pale: #143334; --green: #6CC070; --green-pale: #18301A; --red: #F08A80; --red-pale: #3A1A18;
+  --amber: #F0B45A; --amber-pale: #3A2A10; --gray: #9AA0A6; --gray-pale: #222B35; --navy: #CFE3FF;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 860px; margin: 0 auto; padding: 20px 16px 48px; }
+h1 { font-size: 1.7rem; line-height: 1.2; margin: 8px 0 6px; color: var(--navy); }
+h2 { font-size: 1.15rem; margin: 32px 0 10px; }
+.sub { color: var(--muted); margin: 0 0 18px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin: 10px 0; }
+.verdicts { display: grid; gap: 10px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .verdicts { grid-template-columns: 1fr 1fr; } }
+.verdict .tok { font-size: .85rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.verdict .label { font-size: 1.6rem; font-weight: 800; margin: 2px 0; }
+.verdict.green { background: var(--green-pale); border-color: transparent; } .verdict.green .label { color: var(--green); }
+.verdict.red { background: var(--red-pale); border-color: transparent; } .verdict.red .label { color: var(--red); }
+.verdict.amber { background: var(--amber-pale); border-color: transparent; } .verdict.amber .label { color: var(--amber); }
+.verdict.gray { background: var(--gray-pale); border-color: transparent; } .verdict.gray .label { color: var(--gray); }
+details { margin-top: 8px; } summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
+details ul { padding-left: 18px; margin: 6px 0; font-size: .9rem; }
+.q { display: flex; gap: 14px; align-items: flex-start; }
+.q .num { min-width: 92px; text-align: right; }
+.q .num b { display: block; font-size: 1.6rem; color: var(--teal); line-height: 1.1; }
+.q .num span { font-size: .72rem; color: var(--muted); }
+.q h3 { margin: 0 0 4px; font-size: 1rem; }
+.q p { margin: 0; color: var(--ink); }
+.pill { display: inline-block; font-size: .7rem; font-weight: 700; padding: 1px 7px; border-radius: 99px; background: var(--teal-pale); color: var(--teal); margin-right: 6px; vertical-align: 2px; }
+.chart { position: relative; height: 280px; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td.n, th.n { text-align: right; }
+.role { font-size: .72rem; font-weight: 700; padding: 1px 6px; border-radius: 6px; }
+.role.REWARD_FUNDED { background: var(--amber-pale); color: var(--amber); }
+.role.PARTLY_FUNDED { background: var(--gray-pale); color: var(--muted); }
+.role.NET_PAYER { background: var(--green-pale); color: var(--green); }
+ul.blind { padding-left: 18px; } ul.blind li { margin: 6px 0; }
+dl dt { font-weight: 700; margin-top: 10px; } dl dd { margin: 2px 0 0; color: var(--muted); }
+footer { color: var(--muted); font-size: .82rem; margin-top: 36px; }
+a { color: var(--teal); }
+.err { background: var(--red-pale); color: var(--red); padding: 12px; border-radius: 8px; }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+button.theme { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 8px; padding: 4px 10px; cursor: pointer; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><span class="pill">Daily · public data</span><button class="theme" id="theme" type="button">Theme</button></div>
+  <h1>Is the token actually being used?</h1>
+  <p class="sub" id="thesis">Loading…</p>
+
+  <section class="verdicts" id="verdicts"></section>
+
+  <h2>The questions, in plain English</h2>
+  <div id="questions"></div>
+
+  <h2>Canton Coin: created vs burned each day</h2>
+  <div class="card"><p class="sub" style="margin:0 0 8px">If the teal line (burned) sits under the gray line (created), more new coins are being made than used up.</p><div class="chart"><canvas id="ccChart"></canvas></div></div>
+
+  <h2>Who burns Canton Coin (last 30 days)</h2>
+  <div class="card">
+    <p class="sub" style="margin:0 0 8px">Bar colors: <span class="role NET_PAYER">pays its own way</span> <span class="role PARTLY_FUNDED">partly paid by rewards</span> <span class="role REWARD_FUNDED">paid by rewards</span></p>
+    <div class="chart" style="height:340px"><canvas id="whoChart"></canvas></div>
+    <div class="table-wrap"><table id="whoTable"></table></div>
+  </div>
+
+  <h2>Chainlink: new LINK released vs LINK bought into the Reserve</h2>
+  <div class="card"><p class="sub" style="margin:0 0 8px">Running totals over 90 days. The Reserve is where Chainlink's revenue is converted into LINK. The big steps in "released" are the quarterly unlocks.</p><div class="chart"><canvas id="linkChart"></canvas></div></div>
+
+  <h2>What this data cannot see</h2>
+  <div class="card"><ul class="blind" id="blind"></ul></div>
+
+  <h2>How to read this</h2>
+  <div class="card"><dl>
+    <dt>Burn</dt><dd>Canton Coin destroyed to pay for using the network. Real use of the network means burning.</dd>
+    <dt>Created (minted)</dt><dd>New Canton Coin paid out every ~10 minutes as rewards to apps, validators and super validators.</dd>
+    <dt>Reward-funded</dt><dd>An account that earns at least as much in app rewards as it burns. Its burning can pay for itself, so it is weak evidence of outside demand.</dd>
+    <dt>Chainlink Reserve</dt><dd>An on-chain wallet where Chainlink converts revenue (including fees paid in other tokens) into LINK.</dd>
+    <dt>Released LINK</dt><dd>LINK moved out of Chainlink's official locked wallets into circulation.</dd>
+    <dt>CCIP</dt><dd>Chainlink's cross-chain messaging network. Message counts show how much it is used.</dd>
+    <dt>CIP-0129</dt><dd>Approved Oct 21, 2026: makes private Canton networks pay in burned CC. Expected around Q1 2027, which is when bank use could start to show here.</dd>
+  </dl></div>
+
+  <footer>
+    <p id="meta"></p>
+    <p>Sources: Lighthouse (third-party copy of Canton Scan), Blockscout, supply.chain.link, Chainlink CCIP API. Built by the NTUI Google Sheet; numbers are recomputed daily and never edited by hand. Not investment advice.</p>
+  </footer>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function () {
+  var root = document.documentElement;
+  try { var t = localStorage.getItem('ntui-theme'); if (t) root.setAttribute('data-theme', t); } catch (e) {}
+  document.getElementById('theme').onclick = function () {
+    var dark = root.getAttribute('data-theme') === 'dark' || (!root.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
+    root.setAttribute('data-theme', dark ? 'light' : 'dark');
+    try { localStorage.setItem('ntui-theme', dark ? 'light' : 'dark'); } catch (e) {}
+    if (window.__data) draw(window.__data);
+  };
+})();
+
+function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function fmt(n) { return n === null || n === undefined ? '–' : Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 }); }
+function short(n) { if (n === null || n === undefined) return '–'; var a = Math.abs(n); return a >= 1e9 ? (n / 1e9).toFixed(1) + 'B' : a >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : a >= 1e3 ? (n / 1e3).toFixed(0) + 'K' : String(Math.round(n)); }
+function esc(s) { return String(s === null || s === undefined ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+var charts = {};
+
+function render(d) {
+  document.getElementById('thesis').textContent = d.thesis + ' Data through ' + d.dataThrough + ' (UTC).';
+  document.getElementById('verdicts').innerHTML = d.verdicts.map(function (v) {
+    var list = function (t, a) { return a && a.length ? '<b>' + t + '</b><ul>' + a.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : ''; };
+    return '<div class="card verdict ' + v.color + '"><div class="tok">' + (v.token === 'CC' ? 'Canton Coin (CC)' : 'Chainlink (LINK)') + '</div>' +
+      '<div class="label">' + esc(v.label) + '</div><div>' + esc(v.plain) + '</div>' +
+      '<details><summary>Why</summary><p>' + esc(v.reason) + '</p>' + list('For', v.supporting) + list('Against', v.contradicting) + list('Missing', v.gaps) + '</details></div>';
+  }).join('');
+  document.getElementById('questions').innerHTML = d.questions.map(function (q) {
+    return '<div class="card q"><div class="num"><b>' + (q.number === null ? '–' : esc(q.number)) + '</b><span>' + esc(q.unit) + '</span></div>' +
+      '<div><h3><span class="pill">' + esc(q.token) + '</span>' + esc(q.question) + '</h3><p>' + esc(q.answer) + '</p></div></div>';
+  }).join('');
+  document.getElementById('blind').innerHTML = d.blindSpots.map(function (b) { return '<li>' + esc(b) + '</li>'; }).join('');
+  var rows = d.who && d.who.rows ? d.who.rows : [];
+  var roleTxt = { REWARD_FUNDED: 'paid by rewards', PARTLY_FUNDED: 'partly rewards', NET_PAYER: 'pays its own way' };
+  document.getElementById('whoTable').innerHTML = rows.length ?
+    '<tr><th>#</th><th>Account</th><th class="n">Burned (CC)</th><th class="n">Share</th><th class="n">App rewards (CC)</th><th>Who pays</th><th>Claimed institution?</th></tr>' +
+    rows.map(function (r, i) {
+      return '<tr><td>' + (i + 1) + '</td><td>' + esc(r.name) + '</td><td class="n">' + fmt(r.burned) + '</td><td class="n">' + (r.share === null ? '–' : (r.share * 100).toFixed(1) + '%') +
+        '</td><td class="n">' + fmt(r.rewards) + '</td><td><span class="role ' + r.role + '">' + roleTxt[r.role] + '</span></td><td>' + (r.match ? esc(r.match) : 'no') + '</td></tr>';
+    }).join('') : '<tr><td>Not available yet.</td></tr>';
+  document.getElementById('meta').innerHTML = 'Generated ' + esc(d.generatedUtc) + '. Canton source: ' + esc(d.numbers.cc.source) + '.';
+  draw(d);
+}
+
+function draw(d) {
+  if (!window.Chart) return;
+  Object.keys(charts).forEach(function (k) { charts[k].destroy(); });
+  var ink = css('--muted'), grid = css('--line');
+  Chart.defaults.color = ink; Chart.defaults.borderColor = grid; Chart.defaults.font.family = 'system-ui, sans-serif';
+  var base = { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: function (c) { return c.dataset.label + ': ' + fmt(c.parsed.y !== undefined && c.chart.config.options.indexAxis !== 'y' ? c.parsed.y : c.parsed.x); } } } },
+    scales: { y: { ticks: { callback: function (v) { return short(v); } } }, x: { ticks: { maxTicksLimit: 6 } } } };
+  var cc = d.series.cc.rows.filter(function (r) { return r[1] !== null || r[2] !== null; });
+  charts.cc = new Chart(document.getElementById('ccChart'), { type: 'line', options: base, data: {
+    labels: cc.map(function (r) { return r[0].slice(5); }),
+    datasets: [{ label: 'Created', data: cc.map(function (r) { return r[1]; }), borderColor: css('--gray'), pointRadius: 0, borderWidth: 2 },
+      { label: 'Burned', data: cc.map(function (r) { return r[2]; }), borderColor: css('--teal'), backgroundColor: css('--teal-pale'), fill: true, pointRadius: 0, borderWidth: 2 }] } });
+  var rows = d.who && d.who.rows ? d.who.rows.slice(0, 10) : [];
+  var col = { REWARD_FUNDED: css('--amber'), PARTLY_FUNDED: css('--gray'), NET_PAYER: css('--green') };
+  charts.who = new Chart(document.getElementById('whoChart'), { type: 'bar', data: {
+      labels: rows.map(function (r) { return r.name.length > 24 ? r.name.slice(0, 23) + '…' : r.name; }),
+      datasets: [{ label: 'CC burned (30d)', data: rows.map(function (r) { return r.burned; }), backgroundColor: rows.map(function (r) { return col[r.role]; }) }] },
+    options: Object.assign({}, base, { indexAxis: 'y', plugins: { legend: { display: false }, tooltip: base.plugins.tooltip },
+      scales: { x: { ticks: { callback: function (v) { return short(v); } } }, y: { ticks: { autoSkip: false } } } }) });
+  var lk = d.series.link.rows;
+  charts.link = new Chart(document.getElementById('linkChart'), { type: 'line', options: base, data: {
+    labels: lk.map(function (r) { return r[0].slice(5); }),
+    datasets: [{ label: 'LINK released (running total)', data: lk.map(function (r) { return r[5]; }), borderColor: css('--red'), pointRadius: 0, borderWidth: 2, stepped: true },
+      { label: 'LINK into Reserve (running total)', data: lk.map(function (r) { return r[4]; }), borderColor: css('--teal'), pointRadius: 0, borderWidth: 2 }] } });
+}
+
+fetch('data.json', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  .then(function (d) { window.__data = d; render(d); })
+  .catch(function (e) { document.getElementById('thesis').innerHTML = '<div class="err">Could not load data.json (' + esc(e.message) + '). The sheet publishes it daily.</div>'; });
+</script>
+</body>
+</html>
