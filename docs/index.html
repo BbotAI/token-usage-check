@@ -88,7 +88,7 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 600; font-
 .q p { margin: 0; color: var(--muted); font-size: 1.02rem; }
 @media (max-width: 520px) { .q { grid-template-columns: 1fr; gap: 6px; } .q .num { text-align: left; } }
 .tag { display: inline-block; font-size: .7rem; font-weight: 800; letter-spacing: .06em; padding: 2px 8px; border-radius: 6px; margin-right: 8px; vertical-align: 2px; }
-.tag.CC { background: var(--accent-pale); color: var(--accent); } .tag.LINK { background: rgba(167,139,250,.14); color: var(--violet); }
+.tag.CC { background: var(--accent-pale); color: var(--accent); } .tag.QNT { background: var(--gray-pale); color: var(--gray); } .tag.LINK { background: rgba(167,139,250,.14); color: var(--violet); }
 
 /* charts */
 .chart-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
@@ -128,6 +128,14 @@ tbody tr:hover { background: var(--card2); }
 .dataread { display: inline-flex; gap: 8px; align-items: center; font-size: .82rem; color: var(--muted); background: var(--card2); border: 1px solid var(--line); border-radius: 99px; padding: 4px 12px; }
 .dataread i { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
 .dataread.partial i { background: var(--gold); }
+.dataread.none i { background: var(--gray); }
+.g4g { grid-template-columns: 1fr; } @media (min-width: 760px) { .g4g { grid-template-columns: 1fr 1fr; } } @media (min-width: 1180px) { .g4g { grid-template-columns: repeat(4, 1fr); } }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+.facts div { background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.facts b { display: block; font-family: "JetBrains Mono", monospace; font-size: 1.35rem; }
+.facts span { font-size: .82rem; color: var(--muted); }
+.seeit { list-style: none; padding: 0; margin: 10px 0 0; } .seeit li { padding: 8px 0; border-top: 1px solid var(--line); }
+.seeit li:first-child { border-top: 0; } .seeit .y { color: var(--green); font-weight: 700; } .seeit .n { color: var(--red); font-weight: 700; }
 .key { display: flex; gap: 16px; flex-wrap: wrap; font-size: .88rem; color: var(--muted); margin-top: 4px; }
 .key span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; background: var(--c); }
 ul.blind { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
@@ -145,7 +153,7 @@ footer { color: var(--faint); font-size: .88rem; margin-top: 64px; padding-top: 
 <header class="bar"><div class="bar-in">
   <div class="brand"><i></i>Token Usage Check</div>
   <nav>
-    <a href="#summary">Summary</a><a href="#glance">At a glance</a><a href="#canton">Canton</a><a href="#who">Who burns</a><a href="#chainlink">Chainlink</a><a href="#method">Method</a><a href="#limits">Limits</a><a href="#glossary">Glossary</a>
+    <a href="#summary">Summary</a><a href="#glance">At a glance</a><a href="#canton">Canton</a><a href="#who">Who burns</a><a href="#chainlink">Chainlink</a><a href="#quant">Quant</a><a href="#method">Method</a><a href="#limits">Limits</a><a href="#glossary">Glossary</a>
   </nav>
   <button class="tbtn" id="theme" type="button">Light</button>
 </div></header>
@@ -163,7 +171,7 @@ footer { color: var(--faint); font-size: .88rem; margin-top: 64px; padding-top: 
     <div class="eyebrow">At a glance · after reading all the data</div>
     <h2>Used or not used?</h2>
     <p class="sub">Each gauge reads every day of data first, then points at the answer. <b style="color:var(--red)">Left</b> means the token is not being used. <b style="color:var(--green)">Right</b> means it is. The charts below show the same thing over time: the more <b style="color:var(--accent)">teal</b>, the more real use.</p>
-    <div class="grid g3">
+    <div class="grid g4g">
       <div class="card gauge-card"><div class="tok">Canton Coin · CC</div>
         <div class="gauge"><canvas id="gaugeCC"></canvas></div>
         <div class="gauge-ends"><span class="no">Not using</span><span class="yes">Using</span></div>
@@ -179,6 +187,12 @@ footer { color: var(--faint); font-size: .88rem; margin-top: 64px; padding-top: 
         <div class="gauge-ends"><span class="no">Other tokens</span><span class="yes">LINK</span></div>
         <div class="gauge-val" id="gvFEE"></div>
         <p class="gauge-say" id="gsFEE"></p><span class="dataread" id="drFEE"></span></div>
+      <div class="card gauge-card"><div class="tok">Quant · QNT</div>
+        <div class="gauge"><canvas id="gaugeQNT"></canvas></div>
+        <div class="gauge-ends"><span class="no">Not using</span><span class="yes">Using</span></div>
+        <div class="gauge-val"><b style="color:var(--gray)">?</b><span>can’t see it yet</span></div>
+        <p class="gauge-say">Quant hasn’t published where licence-fee and Fusion QNT goes, so usage can’t be measured. <a href="#quant">What we can see</a></p>
+        <span class="dataread none"><i></i>No public usage record</span></div>
     </div>
     <div class="grid g2" style="margin-top:16px">
       <div class="card">
@@ -200,7 +214,7 @@ footer { color: var(--faint); font-size: .88rem; margin-top: 64px; padding-top: 
     <div class="eyebrow">Verdicts</div>
     <h2>The answer for each token</h2>
     <p class="sub">YES means the data shows the token being used. NO means use is not turning into token demand. MIXED means some signal, not enough to call. Rules are fixed in advance and applied the same way every day.</p>
-    <div class="grid g2" id="verdicts"></div>
+    <div class="grid g3" id="verdicts"></div>
   </section>
 
   <section>
@@ -286,6 +300,39 @@ footer { color: var(--faint); font-size: .88rem; margin-top: 64px; padding-top: 
     </div>
   </section>
 
+  <section id="quant">
+    <div class="eyebrow">Quant (QNT)</div>
+    <h2>What we can and can’t see</h2>
+    <p class="sub">QNT is meant to be used two ways: companies pay Overledger licence fees in QNT, and apps pay for Fusion (Quant’s own network) with QNT. Neither shows up on a public ledger yet, so this section shows what is visible and says plainly what is not.</p>
+    <div class="grid g2">
+      <div class="card">
+        <h3>Supply (fixed, no unlocks)</h3>
+        <div class="facts" id="qntFacts"></div>
+        <p class="read">Unlike LINK, no new QNT gets released, so there is no supply pressure to compare against. The question is only whether anyone spends or locks QNT to use the network.</p>
+      </div>
+      <div class="card">
+        <h3>Licence fees: the scale</h3>
+        <div class="facts" id="qntLic"></div>
+        <p class="read" id="qntLicRead"></p>
+      </div>
+      <div class="card wide">
+        <h3>QNT transfers on Ethereum per day</h3>
+        <div class="chart short"><canvas id="qntChart"></canvas></div>
+        <p class="read" id="qntRead"></p>
+      </div>
+      <div class="card wide">
+        <h3>Can we see it?</h3>
+        <ul class="seeit">
+          <li><span class="y">YES</span> · QNT supply, holders and transfers on Ethereum (Blockscout).</li>
+          <li><span class="n">NO</span> · Licence fees paid in QNT. Quant has not published the treasury contract they go into.</li>
+          <li><span class="n">NO</span> · Fusion gas paid in QNT. No public Fusion mainnet explorer or deposit contract. Our Overledger account can only read Fusion <b>testnet</b>.</li>
+          <li><span class="n">NO</span> · Staking. Not open to the public.</li>
+        </ul>
+        <p class="read">The day Quant publishes the treasury or Fusion deposit address, the sheet will start counting it, and the Quant gauge will get a needle.</p>
+      </div>
+    </div>
+  </section>
+
   <section id="method">
     <div class="eyebrow">Methodology</div>
     <h2>How the numbers are made</h2>
@@ -295,6 +342,7 @@ footer { color: var(--faint); font-size: .88rem; margin-top: 64px; padding-top: 
       <li><b>Who burns</b> compares each top account's 30-day burns with the app rewards it earned. Names are matched against the institutions in the tokenization claims tracker.</li>
       <li><b>LINK</b> Reserve inflows come from the Reserve contract on Ethereum, released supply from Chainlink's non-circulating wallets, and usage from the CCIP API.</li>
       <li><b>CCIP fee token</b> is read from every send event on Chainlink's Ethereum OnRamp contracts (Blockscout). Each event names the token that paid the fee. ETH paid as a fee is wrapped to WETH, so WETH counts as ETH. Daily totals match the CCIP API's count of messages sent from Ethereum.</li>
+      <li><b>QNT</b> transfers are the day-to-day change in Blockscout’s running count of QNT transfers, read once a day and scaled to 24 hours. Supply comes straight from the QNT contract. Licence cost = £100 × the ECB pound-to-dollar rate ÷ the QNT price.</li>
       <li><b>Verdicts</b> use fixed thresholds written down before any data was collected. Missing data is never treated as zero; it makes the answer MIXED or NOT ENOUGH DATA instead.</li>
     </ol></div>
   </section>
@@ -316,13 +364,14 @@ footer { color: var(--faint); font-size: .88rem; margin-top: 64px; padding-top: 
       <div><dt>Chainlink Reserve</dt><dd>An on-chain wallet where Chainlink converts revenue (including fees paid in other tokens) into LINK.</dd></div>
       <div><dt>Released LINK</dt><dd>LINK moved out of Chainlink's locked wallets into circulation.</dd></div>
       <div><dt>CCIP</dt><dd>Chainlink's cross-chain messaging network. Message counts show how much it is used.</dd></div>
+      <div><dt>Overledger / Fusion</dt><dd>Quant’s software (Overledger) and its own network (Fusion). Licences are priced in pounds and paid in QNT; Fusion uses QNT for fees.</dd></div>
       <div><dt>CIP-0129</dt><dd>Approved Oct 21, 2026: makes private Canton networks pay in burned CC. Expected around Q1 2027, which is when bank use could start to show here.</dd></div>
     </dl></div>
   </section>
 
   <footer>
     <p id="meta"></p>
-    <p>Sources: Lighthouse (third-party copy of Canton Scan), Blockscout (LINK transfers and CCIP OnRamp events), supply.chain.link, Chainlink CCIP API. Built by a Google Sheet that recomputes every number daily; nothing is edited by hand. Research only, not investment advice.</p>
+    <p>Sources: Lighthouse (third-party copy of Canton Scan), Blockscout (LINK transfers, CCIP OnRamp events, QNT token data), supply.chain.link, Chainlink CCIP API, ECB exchange rates (Frankfurter). Built by a Google Sheet that recomputes every number daily; nothing is edited by hand. Research only, not investment advice.</p>
   </footer>
 </main>
 
@@ -387,7 +436,7 @@ function render(d) {
 
   document.getElementById('verdicts').innerHTML = d.verdicts.map(function (v) {
     var list = function (t, a) { return a && a.length ? '<div><h4>' + t + '</h4><ul>' + a.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul></div>' : ''; };
-    return '<div class="card verdict ' + v.color + '"><div class="tok">' + (v.token === 'CC' ? 'Canton Coin · CC' : 'Chainlink · LINK') + '</div>' +
+    return '<div class="card verdict ' + v.color + '"><div class="tok">' + ({ CC: 'Canton Coin · CC', LINK: 'Chainlink · LINK', QNT: 'Quant · QNT' }[v.token] || esc(v.token)) + '</div>' +
       '<div class="label">' + esc(v.label) + '</div><div class="plain">' + esc(v.plain) + '</div>' +
       '<details><summary>Show the evidence</summary><div class="why"><div><h4>Rule result</h4>' + esc(v.reason) + '</div>' +
       list('Supports', v.supporting) + list('Against', v.contradicting) + list('Missing data', v.gaps) + '</div></details></div>';
@@ -446,6 +495,18 @@ function render(d) {
     'Last ' + (g.fee.read === 1 ? 'day' : g.fee.read + ' days') + ': <b>' + fmt(g.fee.link) + ' of ' + fmt(g.fee.msgs) + '</b> messages paid in LINK (<b>' + (g.fee.pct < 10 ? g.fee.pct.toFixed(1) : Math.round(g.fee.pct)) + '%</b>). ' +
       'Paying in ETH or another token is allowed. Chainlink later converts that revenue to LINK, which shows up as Reserve buys above. If users wanted LINK itself, the <b>teal</b> bars would grow.' :
     'Collecting. The sheet reads every CCIP send event on Ethereum each night; the first days appear after the next daily run.';
+  var qn = (d.numbers || {}).qnt || {}, qr = ((d.series.qnt || {}).rows || []).filter(function (r) { return r[1] !== null; });
+  var fact = function (a) { return a.map(function (f) { return '<div><b>' + f[0] + '</b><span>' + f[1] + '</span></div>'; }).join(''); };
+  document.getElementById('qntFacts').innerHTML = fact([[short(qn.officialSupply), 'official supply (Quant)'], [short(qn.holders), 'holders on Ethereum'],
+    [short(qn.onchainSupply), 'contract total (old figure)'], [short(qn.heldByContract), 'burned in 2018']]);
+  var lic = qn.licenseQnt;
+  document.getElementById('qntLic').innerHTML = fact([['£' + (qn.licenseGbp || 100), 'per licence, per year'], [lic ? lic.toFixed(2) : '–', 'QNT per licence today'],
+    [lic ? short(lic * 1000) : '–', 'QNT/yr for 1,000 licences'], [lic && qn.officialSupply ? (100 * lic * 1000 / qn.officialSupply).toFixed(3) + '%' : '–', 'of supply']]);
+  document.getElementById('qntLicRead').innerHTML = lic ? 'At about <b>$' + fmt(qn.price) + '</b> per QNT, even <b>1,000</b> licences would use about <b>' + fmt(lic * 1000) + ' QNT</b> a year. Licence fees alone are too small to move QNT; Fusion is the use that could matter.' :
+    'Collecting. The first licence math appears after the next daily run.';
+  document.getElementById('qntRead').innerHTML = qr.length ? 'Last ' + (qr.length === 1 ? 'day' : qr.length + ' days') + ': <b>' + fmt(sum(qr.slice(-30).map(function (r) { return r[1]; }))) +
+    '</b> transfers. Most of these are exchange and trading moves, not people using Quant’s network, so busier days do not mean more use.' :
+    'Collecting. Transfers are counted from the second daily run on (the first run sets the starting count).';
   draw(d);
 }
 
@@ -538,6 +599,15 @@ function draw(d) {
       options: { responsive: true, maintainAspectRatio: false, rotation: -90, circumference: 180, cutout: '68%', layout: { padding: { bottom: 4 } },
         plugins: { legend: { display: false }, tooltip: { enabled: false }, needle: { value: t[1].pct } }, animation: { duration: 900 } } });
   });
+
+  charts.gQNT = new Chart(document.getElementById('gaugeQNT'), { type: 'doughnut',
+    data: { labels: ['Not observable'], datasets: [{ data: [100], backgroundColor: [gray + '55'], borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, rotation: -90, circumference: 180, cutout: '68%', layout: { padding: { bottom: 4 } },
+      plugins: { legend: { display: false }, tooltip: { enabled: false } }, animation: { duration: 900 } } });
+  var qr = ((d.series.qnt || {}).rows || []).filter(function (r) { return r[1] !== null; });
+  charts.qnt = new Chart(document.getElementById('qntChart'), { type: 'bar', data: { labels: qr.map(function (r) { return r[0].slice(5); }), datasets: [
+    { label: 'QNT transfers', data: qr.map(function (r) { return r[1]; }), backgroundColor: gray + '99', borderRadius: 3, maxBarThickness: 46 }] },
+    options: opts({ plugins: { legend: { display: false }, tooltip: tip } }) });
 
   var uc = d.series.cc.rows.filter(function (r) { return r[1] !== null && r[2] !== null; }), cm = 0, cb = 0;
   var cumUsed = [], cumNot = [], usedPct = [];
