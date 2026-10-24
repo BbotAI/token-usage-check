@@ -73,6 +73,30 @@ h3 { font-size: 1.12rem; margin: 0 0 6px; font-weight: 700; }
 .why h4 { margin: 0; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
 .why ul { margin: 4px 0 0; padding-left: 18px; color: var(--muted); }
 details summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: .92rem; margin-top: 12px; }
+.verdict details summary { list-style: none; display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; padding: 9px 18px 9px 14px;
+  border-radius: 999px; border: 1.5px solid var(--vc); color: var(--vc); background: color-mix(in srgb, var(--vc) 12%, transparent);
+  font-size: .95rem; font-weight: 700; animation: evglow 2.4s ease-in-out infinite; transition: background .2s, transform .2s; }
+.verdict details summary::-webkit-details-marker { display: none; }
+.verdict details summary::before { content: "\25B8"; font-size: 1.05rem; line-height: 1; transition: transform .2s; }
+.verdict details[open] summary::before { transform: rotate(90deg); }
+.verdict details summary:hover { background: color-mix(in srgb, var(--vc) 22%, transparent); transform: translateY(-1px); }
+.verdict details[open] summary { animation: none; box-shadow: none; }
+@keyframes evglow { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--vc) 0%, transparent); }
+  50% { box-shadow: 0 0 18px 3px color-mix(in srgb, var(--vc) 45%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .verdict details summary { animation: none; box-shadow: 0 0 10px 1px color-mix(in srgb, var(--vc) 35%, transparent); } }
+
+/* market-price ticker (TradingView), fixed to the bottom of the screen */
+body { padding-bottom: 54px; }
+.tape { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: flex; align-items: center; height: 48px;
+  background: var(--bg2); border-top: 1px solid var(--line); box-shadow: 0 -6px 20px rgba(0,0,0,.18); }
+.tape .tl { flex: 0 0 auto; padding: 0 12px; font-size: .68rem; line-height: 1.25; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); border-right: 1px solid var(--line); }
+.tape .tl b { display: block; color: var(--muted); }
+.tape .tw { flex: 1 1 auto; min-width: 0; height: 46px; overflow: hidden; }
+.tape .tradingview-widget-copyright { display: none; }
+.tape .tc { flex: 0 0 auto; padding: 0 10px; font-size: .66rem; color: var(--faint); }
+.tape .tc a { color: var(--faint); }
+@media (max-width: 600px) { .tape .tc { display: none; } .tape .tl { padding: 0 8px; } }
 
 /* KPIs */
 .kpi .lab { font-size: .8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
@@ -389,6 +413,7 @@ document.getElementById('theme').onclick = function () {
   var next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
   root.setAttribute('data-theme', next); themeLabel();
   try { localStorage.setItem('ntui-theme', next); } catch (e) {}
+  if (window.tvTape) tvTape();
   if (window.__data) draw(window.__data);
 };
 document.querySelectorAll('.seg').forEach(function (s) {
@@ -658,6 +683,32 @@ function draw(d) {
 fetch('data.json', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
   .then(function (d) { window.__data = d; render(d); })
   .catch(function (e) { document.getElementById('thesis').innerHTML = '<div class="err">Could not load data.json (' + esc(e.message) + '). The sheet publishes it daily.</div>'; });
+</script>
+<div class="tape" aria-label="Market prices">
+  <div class="tl"><b>Market price</b>not usage</div>
+  <div class="tw" id="tape"></div>
+  <div class="tc">Prices: <a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank">TradingView</a></div>
+</div>
+<script>
+/* Market price ticker. Price is context only: it says nothing about whether a token is used.
+   Symbols: Kraken USD spot, the one exchange that lists all three (checked 2026-10-24 via TradingView symbol search). */
+var TAPE_SYMBOLS = [
+  { proName: 'KRAKEN:CCUSD', title: 'Canton Coin (CC)' },
+  { proName: 'KRAKEN:LINKUSD', title: 'Chainlink (LINK)' },
+  { proName: 'KRAKEN:QNTUSD', title: 'Quant (QNT)' }
+];
+function tvTape() {
+  var host = document.getElementById('tape'); if (!host) return;
+  host.innerHTML = '';
+  var box = document.createElement('div'); box.className = 'tradingview-widget-container';
+  box.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
+  var sc = document.createElement('script'); sc.async = true; sc.type = 'text/javascript';
+  sc.src = 'https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js';
+  sc.text = JSON.stringify({ symbols: TAPE_SYMBOLS, showSymbolLogo: true, isTransparent: true, displayMode: 'adaptive',
+    colorTheme: document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark', locale: 'en' });
+  box.appendChild(sc); host.appendChild(box);
+}
+tvTape();
 </script>
 </body>
 </html>
