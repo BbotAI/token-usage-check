@@ -138,6 +138,8 @@ tbody tr:hover { background: var(--card2); }
 .seeit li:first-child { border-top: 0; } .seeit .y { color: var(--green); font-weight: 700; } .seeit .n { color: var(--red); font-weight: 700; }
 .key { display: flex; gap: 16px; flex-wrap: wrap; font-size: .88rem; color: var(--muted); margin-top: 4px; }
 .key span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; background: var(--c); }
+.key span.dash::before { width: 18px; height: 0; border-radius: 0; background: none; border-top: 3px dashed var(--c); vertical-align: 3px; }
+.key span.thin::before { height: 2px; width: 18px; border-radius: 0; vertical-align: 4px; }
 ul.blind { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
 ul.blind li { padding: 14px 16px; background: var(--card2); border-radius: 10px; border-left: 3px solid var(--gold); color: var(--muted); }
 dl { margin: 0; display: grid; gap: 14px; }
@@ -237,11 +239,13 @@ footer { color: var(--faint); font-size: .88rem; margin-top: 64px; padding-top: 
       <div class="card wide">
         <div class="chart-head"><h3>CC created vs burned (per day)</h3>
           <div class="seg" data-chart="cc"><button data-d="30">30D</button><button data-d="60">60D</button><button data-d="90" class="on">90D</button></div></div>
+        <div class="key"><span class="dash" style="--c:var(--ink)">Created (new CC)</span><span style="--c:var(--accent)">Burned (used)</span></div>
         <div class="chart"><canvas id="ccChart"></canvas></div>
         <p class="read" id="ccRead"></p>
       </div>
       <div class="card">
         <h3>Burned per 100 created</h3>
+        <div class="key"><span class="thin" style="--c:var(--gray)">Daily</span><span style="--c:var(--accent)">7-day average</span><span class="dash" style="--c:var(--red)">Break-even (100)</span></div>
         <div class="chart short"><canvas id="ratioChart"></canvas></div>
         <p class="read">The dashed line at <b>100</b> is break-even. Below it, supply grows; above it, supply shrinks. The thick line is the 7-day average.</p>
       </div>
@@ -398,7 +402,7 @@ document.querySelectorAll('.seg').forEach(function (s) {
 
 function css(v) { return getComputedStyle(root).getPropertyValue(v).trim(); }
 function fmt(n) { return n === null || n === undefined ? '–' : Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 }); }
-function short(n) { if (n === null || n === undefined || isNaN(n)) return '–'; var a = Math.abs(n); return a >= 1e9 ? (n / 1e9).toFixed(2) + 'B' : a >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : a >= 1e3 ? (n / 1e3).toFixed(0) + 'K' : String(Math.round(n)); }
+function short(n) { if (n === null || n === undefined || isNaN(n)) return '–'; var a = Math.abs(n); return a >= 1e9 ? (n / 1e9).toFixed(2) + 'B' : a >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : a >= 1e4 ? (n / 1e3).toFixed(0) + 'K' : a >= 1e3 ? (+(n / 1e3).toFixed(1)) + 'K' : String(Math.round(n)); }
 function pct(x, d) { return x === null || x === undefined ? '–' : (x * 100).toFixed(d === undefined ? 1 : d) + '%'; }
 function esc(s) { return String(s === null || s === undefined ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 function sum(a) { return a.reduce(function (s, x) { return s + (x || 0); }, 0); }
@@ -558,17 +562,19 @@ function draw(d) {
   var cc = d.series.cc.rows.filter(function (r) { return r[1] !== null && r[2] !== null; }).slice(-range.cc);
   var lab = cc.map(function (r) { return r[0].slice(5); });
   var ctx = document.getElementById('ccChart').getContext('2d');
-  charts.cc = new Chart(ctx, { type: 'line', options: opts(), data: { labels: lab, datasets: [
-    { label: 'Created', data: cc.map(function (r) { return r[1]; }), borderColor: gray, borderWidth: 2, pointRadius: 0, tension: .25 },
+  charts.cc = new Chart(ctx, { type: 'line', options: opts({ plugins: { legend: { display: false }, tooltip: tip },
+      scales: { y: { beginAtZero: true, grid: { color: line }, ticks: { callback: function (v) { return short(v); } } }, x: { grid: { display: false }, ticks: { maxTicksLimit: 8, maxRotation: 0 } } } }),
+    data: { labels: lab, datasets: [
+    { label: 'Created', data: cc.map(function (r) { return r[1]; }), borderColor: css('--ink'), borderDash: [7, 5], borderWidth: 2, pointRadius: 0, tension: .25 },
     { label: 'Burned', data: cc.map(function (r) { return r[2]; }), borderColor: accent, backgroundColor: grad(ctx, accent), fill: true, borderWidth: 2.5, pointRadius: 0, tension: .25 }] } });
 
   var all = d.series.cc.rows.filter(function (r) { return r[1] && r[2] !== null; });
   var ratio = all.map(function (r) { return 100 * r[2] / r[1]; });
   charts.ratio = new Chart(document.getElementById('ratioChart'), { type: 'line', data: { labels: all.map(function (r) { return r[0].slice(5); }), datasets: [
-    { label: 'Daily', data: ratio, borderColor: accent + '66', borderWidth: 1, pointRadius: 0 },
+    { label: 'Daily', data: ratio, borderColor: gray + 'aa', borderWidth: 1, pointRadius: 0 },
     { label: '7-day average', data: ma(ratio, 7), borderColor: accent, borderWidth: 3, pointRadius: 0, tension: .3 },
     { label: 'Break-even', data: all.map(function () { return 100; }), borderColor: red, borderDash: [6, 5], borderWidth: 1.5, pointRadius: 0 }] },
-    options: opts({ plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }, tooltip: Object.assign({}, tip, { callbacks: { label: function (c) { return ' ' + c.dataset.label + ': ' + c.parsed.y.toFixed(0); } } }) },
+    options: opts({ plugins: { legend: { display: false }, tooltip: Object.assign({}, tip, { callbacks: { label: function (c) { return ' ' + c.dataset.label + ': ' + c.parsed.y.toFixed(0); } } }) },
       scales: { y: { min: 0, max: 110, grid: { color: line } }, x: { grid: { display: false }, ticks: { maxTicksLimit: 6, maxRotation: 0 } } } }) });
 
   charts.net = new Chart(document.getElementById('netChart'), { type: 'bar', data: { labels: all.map(function (r) { return r[0].slice(5); }), datasets: [
