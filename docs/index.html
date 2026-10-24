@@ -196,16 +196,16 @@ footer { color: var(--faint); font-size: .88rem; margin-top: 64px; padding-top: 
   <section id="glance">
     <div class="eyebrow">At a glance · after reading all the data</div>
     <h2>Used or not used?</h2>
-    <p class="sub">Each gauge reads every day of data first, then points at the answer. <b style="color:var(--red)">Left</b> means the token is not being used. <b style="color:var(--green)">Right</b> means it is. The charts below show the same thing over time: the more <b style="color:var(--accent)">teal</b>, the more real use.</p>
+    <p class="sub">Each gauge reads every day in its window first. The CC and LINK gauges show how much of the token's new supply real use soaked up: <b style="color:var(--red)">left</b> means almost none, <b style="color:var(--green)">right</b> means all of it. The fee gauge shows how many CCIP fees were paid in LINK. Quant has no needle because its usage is not public. The charts below show the same thing over time: the more <b style="color:var(--accent)">teal</b>, the more real use.</p>
     <div class="grid g4g">
       <div class="card gauge-card"><div class="tok">Canton Coin · CC</div>
         <div class="gauge"><canvas id="gaugeCC"></canvas></div>
-        <div class="gauge-ends"><span class="no">Not using</span><span class="yes">Using</span></div>
+        <div class="gauge-ends"><span class="no">None used</span><span class="yes">All used</span></div>
         <div class="gauge-val" id="gvCC"></div>
         <p class="gauge-say" id="gsCC"></p><span class="dataread" id="drCC"></span></div>
       <div class="card gauge-card"><div class="tok">Chainlink · LINK</div>
         <div class="gauge"><canvas id="gaugeLINK"></canvas></div>
-        <div class="gauge-ends"><span class="no">Not using</span><span class="yes">Using</span></div>
+        <div class="gauge-ends"><span class="no">None used</span><span class="yes">All used</span></div>
         <div class="gauge-val" id="gvLINK"></div>
         <p class="gauge-say" id="gsLINK"></p><span class="dataread" id="drLINK"></span></div>
       <div class="card gauge-card"><div class="tok">CCIP fees · paid in LINK</div>
@@ -215,9 +215,9 @@ footer { color: var(--faint); font-size: .88rem; margin-top: 64px; padding-top: 
         <p class="gauge-say" id="gsFEE"></p><span class="dataread" id="drFEE"></span></div>
       <div class="card gauge-card"><div class="tok">Quant · QNT</div>
         <div class="gauge"><canvas id="gaugeQNT"></canvas></div>
-        <div class="gauge-ends"><span class="no">Not using</span><span class="yes">Using</span></div>
+        <div class="gauge-ends"><span class="no">None used</span><span class="yes">All used</span></div>
         <div class="gauge-val"><b style="color:var(--gray)">?</b><span>can’t see it yet</span></div>
-        <p class="gauge-say">Quant hasn’t published where licence-fee and Fusion QNT goes, so usage can’t be measured. <a href="#quant">What we can see</a></p>
+        <p class="gauge-say">Quant hasn’t published where licence-fee and Fusion QNT go, so usage can’t be measured. <a href="#quant">What we can see</a></p>
         <span class="dataread none"><i></i>No public usage record</span></div>
     </div>
     <div class="grid g2" style="margin-top:16px">
@@ -239,12 +239,12 @@ footer { color: var(--faint); font-size: .88rem; margin-top: 64px; padding-top: 
   <section>
     <div class="eyebrow">Verdicts</div>
     <h2>The answer for each token</h2>
-    <p class="sub">YES means the data shows the token being used. NO means use is not turning into token demand. MIXED means some signal, not enough to call. Rules are fixed in advance and applied the same way every day.</p>
+    <p class="sub"><b>YES</b> means measured demand for the token keeps up with new supply. <b>NO</b> means it does not keep up with new supply or with network use. <b>MIXED</b> means some real demand, but not enough for a clear call. <b>NOT ENOUGH DATA</b> means the data needed is missing or not public. Rules are fixed in advance and applied the same way every day.</p>
     <div class="grid g3" id="verdicts"></div>
   </section>
 
   <section>
-    <div class="eyebrow">Key numbers · last 30 days</div>
+    <div class="eyebrow">Key numbers · CC: last 30 days · LINK: last 90 days</div>
     <h2>The scoreboard</h2>
     <div class="grid g4" id="kpis" style="margin-top:16px"></div>
   </section>
@@ -334,9 +334,9 @@ footer { color: var(--faint); font-size: .88rem; margin-top: 64px; padding-top: 
     <p class="sub">QNT is meant to be used two ways: companies pay Overledger licence fees in QNT, and apps pay for Fusion (Quant’s own network) with QNT. Neither shows up on a public ledger yet, so this section shows what is visible and says plainly what is not.</p>
     <div class="grid g2">
       <div class="card">
-        <h3>Supply (fixed, no unlocks)</h3>
+        <h3>Supply (fixed)</h3>
         <div class="facts" id="qntFacts"></div>
-        <p class="read">Unlike LINK, no new QNT gets released, so there is no supply pressure to compare against. The question is only whether anyone spends or locks QNT to use the network.</p>
+        <p class="read">QNT has a fixed supply and no published unlock schedule like LINK's quarterly releases, so there is no new-supply number to compare against. The question is only whether anyone spends or locks QNT to use the network.</p>
       </div>
       <div class="card">
         <h3>Licence fees: the scale</h3>
@@ -449,18 +449,18 @@ function derive(d) {
 }
 
 function render(d) {
-  var x = derive(d), per100 = x.minted30 ? Math.round(100 * x.burned30 / x.minted30) : null;
+  var x = derive(d), g = gaugeData(d), per100 = x.minted30 ? Math.round(100 * x.burned30 / x.minted30) : null;
   document.getElementById('thesis').textContent = d.thesis + ' This page measures it with public on-chain data, and says plainly when the data cannot tell.';
   var bl = [
-    [per100 === null ? '–' : per100, 'CC burned for every <b>100 CC created</b> in the last 30 days. Supply is growing.'],
+    [per100 === null ? '–' : per100, 'CC burned for every <b>100 CC created</b> in the last 30 days.' + (per100 === null ? '' : per100 < 100 ? ' Supply is growing.' : ' Supply is shrinking.')],
     [pct(x.top3, 0), 'of all CC burning comes from just <b>3 accounts</b> (' + esc(x.rows.slice(0, 3).map(function (r) { return r.name; }).join(', ')) + ').'],
     [String(x.matches.length), 'banks or institutions from the tokenization claims appear among the <b>top 50 burners</b>.'],
-    [x.inflow30 && x.released30 ? (100 * x.inflow30 / x.released30).toFixed(1) : '–', 'LINK bought into the Reserve for every <b>100 LINK released</b> in the last 30 days.']
+    [g.link.pct === null ? '–' : (g.link.pct < 10 ? g.link.pct.toFixed(1) : Math.round(g.link.pct)), 'LINK bought into the Reserve for every <b>100 LINK released</b> in the last ' + g.link.days + ' days (LINK unlocks come once a quarter, so LINK is measured over 90 days).']
   ];
   document.getElementById('bottomline').innerHTML = bl.map(function (b) { return '<div class="bl"><span class="k">' + esc(b[0]) + '</span><span>' + b[1] + '</span></div>'; }).join('');
   document.getElementById('metarow').innerHTML =
     '<span class="chip">Data through <b class="mono">' + esc(d.dataThrough) + '</b> UTC</span>' +
-    '<span class="chip">Canton window <b>' + d.series.cc.rows.length + ' days</b></span>' +
+    '<span class="chip">Charts show <b>' + d.series.cc.rows.length + ' days</b></span>' +
     '<span class="chip">Updated <b class="mono">' + esc(String(d.generatedUtc).slice(0, 16).replace('T', ' ')) + '</b> UTC</span>';
 
   document.getElementById('verdicts').innerHTML = d.verdicts.map(function (v) {
@@ -478,8 +478,8 @@ function render(d) {
     [x.matches.length ? 'hl' : 'bad', 'Claimed institutions', pct(x.watch, 0), 'of burning (top 50 checked)'],
     ['', 'Net payers', pct(x.netPayer, 0), 'burn mostly out of pocket'],
     ['', 'Fully reward-funded', pct(x.rewardFunded, 1), 'burn paid back by rewards'],
-    ['bad', 'LINK released', short(x.released30), 'into circulation'],
-    ['', 'LINK into Reserve', short(x.inflow30), 'bought with revenue']
+    ['bad', 'LINK released', short(g.link.released), 'into circulation · 90 days'],
+    ['', 'LINK into Reserve', short(g.link.bought), 'bought with revenue · 90 days']
   ];
   document.getElementById('kpis').innerHTML = k.map(function (c) {
     return '<div class="card kpi ' + c[0] + '"><div class="lab">' + c[1] + '</div><div class="val">' + c[2] + '</div><div class="note">' + c[3] + '</div></div>';
@@ -508,7 +508,6 @@ function render(d) {
   var named = x.rows.slice(0, 3).map(function (r) { return esc(r.name); }).join(', ');
   document.getElementById('concRead').innerHTML = '<b>' + pct(x.top3, 0) + '</b> of burning comes from ' + named + '. ' +
     (x.matches.length ? 'Claimed institutions found: <b>' + esc(x.matches.join(', ')) + '</b>.' : '<b>No</b> bank or institution from the tokenization claims is in the top 50.');
-  var g = gaugeData(d);
   document.getElementById('linkRead').innerHTML = 'Over ' + g.link.days + ' days: <b>' + short(g.link.released) + ' LINK released</b> vs <b>' + short(g.link.bought) + ' bought into the Reserve</b>' +
     (d.numbers.link.reserveBalance ? ' (Reserve now holds about <b>' + short(d.numbers.link.reserveBalance) + '</b>)' : '') + '. The gray steps are unlocks. If revenue were soaking up new supply, the teal line would climb to meet them.';
   [['CC', g.cc], ['LINK', g.link], ['FEE', g.fee]].forEach(function (t) {
@@ -522,7 +521,7 @@ function render(d) {
   var ff = ((d.series.ccipFees || {}).rows || []).filter(function (r) { return r[1] !== null; });
   document.getElementById('feeRead').innerHTML = ff.length ?
     'Last ' + (g.fee.read === 1 ? 'day' : g.fee.read + ' days') + ': <b>' + fmt(g.fee.link) + ' of ' + fmt(g.fee.msgs) + '</b> messages paid in LINK (<b>' + (g.fee.pct < 10 ? g.fee.pct.toFixed(1) : Math.round(g.fee.pct)) + '%</b>). ' +
-      'Paying in ETH or another token is allowed. Chainlink later converts that revenue to LINK, which shows up as Reserve buys above. If users wanted LINK itself, the <b>teal</b> bars would grow.' :
+      'Paying in ETH or another token is allowed. Chainlink later converts that revenue to LINK, which shows up as Reserve buys above. If more users paid in LINK, the <b>teal</b> bars would grow.' :
     'Collecting. The sheet reads every CCIP send event on Ethereum each night; the first days appear after the next daily run.';
   var qn = (d.numbers || {}).qnt || {}, qr = ((d.series.qnt || {}).rows || []).filter(function (r) { return r[1] !== null; });
   var fact = function (a) { return a.map(function (f) { return '<div><b>' + f[0] + '</b><span>' + f[1] + '</span></div>'; }).join(''); };
@@ -541,7 +540,7 @@ function render(d) {
 
 /* gauges: share of new supply that real use soaks up, over the whole window */
 function gaugeData(d) {
-  var cc = d.series.cc.rows, ok = cc.filter(function (r) { return r[1] !== null && r[2] !== null; });
+  var cc = d.series.cc.rows.slice(-30), ok = cc.filter(function (r) { return r[1] !== null && r[2] !== null; });
   var m = sum(ok.map(function (r) { return r[1]; })), b = sum(ok.map(function (r) { return r[2]; }));
   var lb = 0; (d.verdicts || []).forEach(function (v) { (v.gaps || []).forEach(function (t) { var k = /(\d+) day\(s\) of burns are LOWER_BOUND/.exec(t); if (k) lb = Number(k[1]); }); });
   var lk = d.series.link.rows, lok = lk.filter(function (r) { return r[1] !== null && r[2] !== null; });
@@ -553,9 +552,9 @@ function gaugeData(d) {
     fee: { pct: fp, unit: 'of fees paid in LINK · ' + fok.length + (fok.length === 1 ? ' day' : ' days'), read: fok.length, total: 30, partial: 0, msgs: fm, link: fl,
       say: fp === null ? 'Collecting. The first fee-token numbers arrive after the next daily run.' :
         'Of <b>' + fmt(fm) + '</b> messages sent from Ethereum, <b>' + fmt(fl) + '</b> paid the fee in LINK. The rest paid in ETH or other tokens.' },
-    cc: { pct: cp, unit: 'of new CC used · ' + ok.length + ' days', read: ok.length, total: cc.length, partial: lb,
-      say: cp === null ? 'Not enough data yet.' : 'Of every <b>100</b> new CC, <b>' + Math.round(cp) + '</b> get used. The other <b>' + (100 - Math.round(cp)) + '</b> just add to supply.' },
-    link: { pct: lp, unit: 'of new LINK absorbed · ' + lok.length + ' days', read: lok.length, total: lk.length, partial: 0, released: rel, bought: buy, days: lok.length,
+    cc: { pct: cp, unit: 'of new CC burned (used) · ' + ok.length + ' days', read: ok.length, total: cc.length, partial: lb,
+      say: cp === null ? 'Not enough data yet.' : 'Of every <b>100</b> new CC, <b>' + Math.round(cp) + '</b> were burned (used). The other <b>' + (100 - Math.round(cp)) + '</b> added to supply.' },
+    link: { pct: lp, unit: 'of new LINK bought back · ' + lok.length + ' days', read: lok.length, total: lk.length, partial: 0, released: rel, bought: buy, days: lok.length,
       say: lp === null ? 'No new LINK was released in this window, so there is nothing to compare yet.' : 'For every <b>100</b> new LINK released, revenue bought back only <b>' + (lp < 10 ? lp.toFixed(1) : Math.round(lp)) + '</b>.' }
   };
 }
@@ -695,7 +694,9 @@ fetch('data.json', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw n
 var TAPE_SYMBOLS = [
   { proName: 'KRAKEN:CCUSD', title: 'Canton Coin (CC)' },
   { proName: 'KRAKEN:LINKUSD', title: 'Chainlink (LINK)' },
-  { proName: 'KRAKEN:QNTUSD', title: 'Quant (QNT)' }
+  { proName: 'KRAKEN:QNTUSD', title: 'Quant (QNT)' },
+  { proName: 'KRAKEN:BTCUSD', title: 'Bitcoin (BTC)' },
+  { proName: 'KRAKEN:ETHUSD', title: 'Ethereum (ETH)' }
 ];
 function tvTape() {
   var host = document.getElementById('tape'); if (!host) return;
