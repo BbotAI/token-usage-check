@@ -507,6 +507,30 @@ function derive(d) {
   };
 }
 
+/* Countdown to the next data update. The sheet runs daily at 02:00 UTC and publishes about
+   45 minutes later, so the target is the next 02:50 UTC. Shown in the reader's own time zone. */
+var nextTimer = null;
+function nextUpdate(generatedUtc) {
+  var el = document.getElementById('nextUpdate');
+  if (!el) return;
+  var tick = function () {
+    var now = new Date();
+    var t = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 2, 50));
+    if (t <= now) t = new Date(t.getTime() + 86400000);
+    var ageH = (now - new Date(generatedUtc)) / 3600000;
+    if (ageH > 26) {
+      el.innerHTML = 'Next update <b>overdue</b>';
+      return;
+    }
+    var mins = Math.round((t - now) / 60000), h = Math.floor(mins / 60), m = mins % 60;
+    el.innerHTML = 'Next update in <b class="mono">' + h + 'h ' + m + 'm</b> (about ' +
+      t.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' your time)';
+  };
+  tick();
+  if (nextTimer) clearInterval(nextTimer);
+  nextTimer = setInterval(tick, 30000);
+}
+
 function render(d) {
   var x = derive(d), g = gaugeData(d), per100 = x.minted30 ? Math.round(100 * x.burned30 / x.minted30) : null;
   document.getElementById('thesis').textContent = d.thesis + ' This page measures it with public on-chain data, and says plainly when the data cannot tell.';
@@ -520,7 +544,9 @@ function render(d) {
   document.getElementById('metarow').innerHTML =
     '<span class="chip">Data through <b class="mono">' + esc(d.dataThrough) + '</b> UTC</span>' +
     '<span class="chip">Charts show <b>' + d.series.cc.rows.length + ' days</b></span>' +
-    '<span class="chip">Updated <b class="mono">' + esc(String(d.generatedUtc).slice(0, 16).replace('T', ' ')) + '</b> UTC</span>';
+    '<span class="chip">Updated <b class="mono">' + esc(String(d.generatedUtc).slice(0, 16).replace('T', ' ')) + '</b> UTC</span>' +
+    '<span class="chip" id="nextUpdate"></span>';
+  nextUpdate(d.generatedUtc);
 
   document.getElementById('verdicts').innerHTML = d.verdicts.map(function (v) {
     var list = function (t, a) { return a && a.length ? '<div><h4>' + t + '</h4><ul>' + a.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul></div>' : ''; };
