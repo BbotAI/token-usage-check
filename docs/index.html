@@ -404,7 +404,7 @@ footer { color: var(--faint); font-size: .88rem; margin-top: 64px; padding-top: 
       <li><b>Who burns</b> compares each top account's 30-day burns with the app rewards it earned. Names are matched against the institutions in the tokenization claims tracker.</li>
       <li><b>LINK</b> Reserve inflows come from the Reserve contract on Ethereum, released supply from Chainlink's non-circulating wallets, and usage from the CCIP API.</li>
       <li><b>CCIP fee token</b> is read from every send event on Chainlink's Ethereum OnRamp contracts (Blockscout). Each event names the token that paid the fee. ETH paid as a fee is wrapped to WETH, so WETH counts as ETH. Daily totals match the CCIP API's count of messages sent from Ethereum.</li>
-      <li><b>QNT</b> transfers are the day-to-day change in Blockscout’s running count of QNT transfers, read once a day and scaled to 24 hours. Supply comes straight from the QNT contract. Licence cost = £100 × the ECB pound-to-dollar rate ÷ the QNT price.</li>
+      <li><b>QNT</b> transfers are an exact count of every QNT transfer recorded on Ethereum in each UTC day, read straight from the chain. (Until 31 October they came from a Blockscout counter that refreshed irregularly; the days since 25 October have been recounted.) Supply comes straight from the QNT contract. Licence cost = £100 × the ECB pound-to-dollar rate ÷ the QNT price.</li>
       <li><b>Verdicts</b> use fixed thresholds written down before any data was collected. Missing data is never treated as zero; it makes the answer MIXED or NOT ENOUGH DATA instead.</li>
     </ol></div>
   </section>
